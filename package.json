@@ -1,0 +1,37 @@
+{
+  "name": "attack",
+  "version": "1.0.0",
+  "description": "",
+  "main": "start",
+  "scripts": {
+    "start": "node start",
+    "dev": "nodemon start",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mikedatsko/aua.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mikedatsko/aua/issues"
+  },
+  "homepage": "https://github.com/mikedatsko/aua#readme",
+  "dependencies": {
+    "axios": "^0.26.0",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "hcloud-nodejs": "^0.1.9"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15",
+    "prettier": "^2.5.1"
+  },
+  "prettier": {
+    "trailingComma": "none",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true
+  }
+}

@@ -1,0 +1,120 @@
+#!/usr/bin/env node
+
+require('dotenv').config();
+const express = require('express');
+const axios = require('axios');
+const https = require('https');
+const fs = require('fs');
+// const hcloud = require('hcloud-nodejs');
+const { URLSearchParams } = require('url');
+const app = express();
+const port = 443;
+
+// hcloud.registerClient(
+//   '7JciVOnx2hKiPXv2AeZmSGAWczWrDFjGohxAYEfnLWfFF5vDwUbT4hRB3BE3lF3E'
+// );
+
+app.get('/start', async (req, res, next) => {
+  try {
+    const {
+      COMMAND,
+      REGION,
+      NAME,
+      SIZE,
+      IMAGE,
+      TAGS,
+      DIGITALOCEAN_TOKEN,
+      AMOUNT
+    } = process.env;
+
+    const amount = parseInt(AMOUNT || 1, 10);
+    const data = [];
+
+    for (let i = 0; i < amount; i++) {
+      data.push({
+        name: NAME,
+        region: REGION,
+        size: SIZE,
+        image: IMAGE,
+        ssh_keys: [],
+        backups: false,
+        monitoring: true,
+        ipv6: true,
+        user_data: COMMAND,
+        private_networking: null,
+        volumes: null,
+        tags: [TAGS],
+        with_droplet_agent: true
+      });
+    }
+
+    await axios.post('https://api.digitalocean.com/v2/droplets', {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${DIGITALOCEAN_TOKEN}`
+      },
+      data
+    });
+    res.send({ response: 'Hello World!' });
+  } catch (err) {
+    console.log('ERR', err);
+    res.send({ err });
+  }
+});
+
+app.get('/token', (req, res) => {
+  const { CLIENT_ID, REDIRECT_URI } = process.env;
+  const params = {
+    client_id: CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: 'code'
+  };
+  const urlParameters = new URLSearchParams(params);
+
+  res.redirect(
+    `https://cloud.digitalocean.com/v1/oauth/authorize?${urlParameters}`
+  );
+});
+
+app.get('/callback', async (req, res, next) => {
+  try {
+    const code = req.query.code;
+    const { CLIENT_ID, CLIENT_SECRET, REDIRECT_URI } = process.env;
+    const data = {
+      code,
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+      redirect_uri: REDIRECT_URI
+    };
+    // https://cloud.digitalocean.com/v1/oauth/authorize?client_id=af741e4f5b6fa84a2db26bdc8272970f836a61e3c9102f18e483acedeac59382&redirect_uri=http://localhost:8000/callback&response_type=code
+
+    const token = await axios.post(
+      'https://cloud.digitalocean.com/v1/oauth/token?grant_type=authorization_code',
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data
+      }
+    );
+    console.log('token', token);
+    res.send({ response: 'Hello World!' });
+  } catch (err) {
+    console.log('ERR', err);
+    res.send({ err });
+  }
+});
+
+const key = fs.readFileSync(__dirname + '/localhost.key');
+const cert = fs.readFileSync(__dirname + '/localhost.crt');
+const options = {
+  key: key,
+  cert: cert,
+  passphrase: '1qaz'
+};
+
+const server = https.createServer(options, app);
+
+server.listen(port, () => {
+  console.log('App starting on port : ' + port);
+});

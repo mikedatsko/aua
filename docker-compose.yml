@@ -1,0 +1,19 @@
+version: '3.9'
+services:
+  web:
+    build:
+      context: .
+      target: dev
+    ports:
+      - 443:443
+    volumes:
+      - .:/app
+    environment:
+      - DIGITALOCEAN_TOKEN=${DIGITALOCEAN_TOKEN}
+      - COMMAND=${COMMAND}
+      - REGION=${REGION}
+      - NAME=${NAME}
+      - SIZE=${SIZE}
+      - IMAGE=${IMAGE}
+      - TAGS=${TAGS}
+      - AMOUNT=${AMOUNT}
